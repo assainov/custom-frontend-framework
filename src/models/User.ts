@@ -1,4 +1,7 @@
+import axios from 'axios';
+
 interface UserProps {
+    id?: number;
     name?: string;
     age?: number;
 }
@@ -19,17 +22,48 @@ export default class User {
         }
     }
 
-    private observers: Callback[] = [];
+    private subscribers: Callback[] = [];
 
     subscribe(callback: Callback): void {
-        this.observers.push(callback);
+        this.subscribers.push(callback);
     }
 
     unsubscribe(callback: Callback): void {
-        this.observers = this.observers.filter((subscriber: Callback) => subscriber !== callback);
+        this.subscribers = this.subscribers.filter((subscriber: Callback) => subscriber !== callback);
     }
 
     private notify(propName: string, newPropValue: any): void {
-        this.observers.forEach((subscriber: Callback) => subscriber(propName, newPropValue));
+        this.subscribers.forEach((subscriber: Callback) => subscriber(propName, newPropValue));
+    }
+
+    async fetch(): Promise<UserProps> {
+        try {
+            const response = await axios.get(`http://localhost:3000/users/${this.get('id')}`);
+    
+            const user = <UserProps>response.data;
+            this.set(user);
+            
+        } catch(e) {
+            // error handler here
+            throw e;
+        }
+        return;
+    }
+
+    async persist(): Promise<UserProps> {
+        const id = this.get('id');
+
+        try {
+            if (id) {
+                await axios.put(`http://localhost:3000/users/${id}`, this.props);
+            } else {
+                await axios.post('http://localhost:3000/users/', this.props);
+            }
+        } catch(e) {
+            // error handler here
+            throw e;
+        }
+
+        return;
     }
 }
