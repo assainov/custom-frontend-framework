@@ -2,7 +2,13 @@ import User from './models/User';
 
 const user = new User({});
 
+user.subscribe(printNotification);
+
 user.set({name: 'Talgat'});
 user.set({age: 2});
 
-console.log(user.get('name'), user.get('age'));
+user.unsubscribe(printNotification);
+
+function printNotification(propName: string, newPropValue: any): void {
+    console.log('Notification:', `${propName} has changed to ${newPropValue}.`);
+}
